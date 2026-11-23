@@ -30,8 +30,8 @@ header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 16px
 nav{display:flex;gap:4px;padding:10px 16px 0;max-width:1100px;margin:0 auto;overflow-x:auto}
 nav button{background:none;border:1px solid transparent;border-bottom:none;border-radius:10px 10px 0 0;padding:8px 14px;color:var(--muted);white-space:nowrap}
 nav button.on{background:var(--panel);border-color:var(--line);color:var(--gold)}
-.wrap{max-width:1100px;margin:0 auto;padding:0 16px 40px;display:grid;grid-template-columns:minmax(280px,430px) 1fr;gap:18px;align-items:start}
-@media (max-width:860px){.wrap{grid-template-columns:1fr;gap:10px}.treecol{max-width:min(430px,46vh);margin:0 auto;width:100%}.treehint{display:none}header{padding:8px 12px;gap:8px}.hud{margin-left:0}}
+.wrap{max-width:1200px;margin:0 auto;padding:0 16px 40px;display:grid;grid-template-columns:minmax(300px,540px) 1fr;gap:18px;align-items:start}
+@media (max-width:900px){.wrap{grid-template-columns:1fr;gap:10px}.treecol{margin:0 auto;width:100%}#tree{max-height:46vh}.treehint{display:none}header{padding:8px 12px;gap:8px}.hud{margin-left:0}}
 .treecol{position:sticky;top:70px}
 @media (max-width:860px){.treecol{position:static}}
 .card{background:#0d0e0b;border:2px solid var(--gold-d);border-radius:18px;padding:6px;position:relative;box-shadow:0 10px 40px rgba(0,0,0,.6),inset 0 0 0 1px #000}
@@ -120,11 +120,21 @@ input[type=range]{accent-color:var(--gold);width:100%}
 h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px}
 .diff{font:700 26px var(--mono);letter-spacing:.12em;text-align:center}
 .diff .g{color:var(--green)} .diff .r{color:var(--red);text-decoration:underline}
+.spd{display:grid;grid-template-columns:auto 1fr 64px;gap:4px 10px;align-items:center;width:100%;max-width:420px;margin-top:8px}
+.spd label{font-size:12px;color:var(--muted)}
+.spd output{font:12px var(--mono);text-align:right;color:var(--gold)}
+.answer{text-align:center;color:var(--muted);font-size:13px;margin-bottom:6px}
+.answer b{font:700 22px var(--mono);color:var(--text);margin-left:6px}
+.node.empty .sh{fill:var(--gold);stroke:none}
+.node.empty{cursor:default}
+.setseg button{font-weight:600;font-family:var(--mono)}
+.setseg button.on{background:var(--gold);color:#16140c}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">MORSE <b>●</b> TREE</div>
+  <div class="seg setseg" id="setSeg" title="Набор знаков"></div>
   <div class="hud">
     <div class="chip" id="hScore"><span>очки</span><b>0</b></div>
     <div class="chip combo" id="hCombo"><span>комбо</span><b>0</b> <i>×1</i></div>
@@ -141,7 +151,7 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
 <div class="wrap">
   <div class="treecol">
     <div class="card" id="treeCard">
-      <svg id="tree" viewBox="0 0 400 475"></svg>
+      <svg id="tree"></svg>
       <div class="cover"><b>ВСЛЕПУЮ ×2</b>Дерево скрыто.<br>Ошибёшься — покажу подсказку.</div>
     </div>
     <div class="treehint">Точка — кружок, тире — прямоугольник. Нажми на букву, чтобы услышать её.</div>
@@ -163,7 +173,9 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
         <input type="text" id="playTxt" placeholder="SOS HELLO" maxlength="40">
         <button class="btn pri" id="playBtn">▶</button>
       </div>
-      <p class="small">Каждый символ подсвечивает путь по дереву — так проще запомнить, где какая буква.</p>
+      <div class="spd"><label>Скорость</label><input type="range" class="wpmR" min="5" max="35"><output class="wpmO"></output>
+        <label>Паузы</label><input type="range" class="fwR" min="3" max="35"><output class="fwO"></output></div>
+      <p class="small">Каждый символ подсвечивает путь по дереву — так проще запомнить, где какая буква. «Паузы» — темп между буквами: меньше значит дольше пауза.</p>
     </section>
 
     <!-- RX -->
@@ -181,7 +193,10 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
           <button class="btn" id="rxSkip">Дальше →</button>
         </div>
         <div class="mult" id="rxMult"></div>
+        <div class="spd"><label>Скорость</label><input type="range" class="wpmR" min="5" max="35"><output class="wpmO"></output>
+          <label>Паузы</label><input type="range" class="fwR" min="3" max="35"><output class="fwO"></output></div>
       </div>
+      <div class="answer" id="rxEcho"></div>
       <div class="fb" id="rxFb"></div>
       <div id="rxDiff" class="diff"></div>
       <div class="grid" id="rxGrid"></div>
@@ -217,7 +232,7 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
     <section class="panel hidden" id="p-stats">
       <div class="rank"><div class="lv" id="sLv">1</div><div><div id="sRank" style="font:500 20px Oswald;color:var(--gold)"></div><div class="small" id="sNext"></div></div></div>
       <div class="stats" id="sStats"></div>
-      <h3>Буквы</h3>
+      <h3 id="sSetTitle">Буквы</h3>
       <p class="small">Новые буквы открываются по 2, когда все открытые освоены на 75%+ (минимум 4 ответа на каждую). Шкала — уровень освоения.</p>
       <div class="mgrid" id="mGrid"></div>
       <h3>Настройки</h3>
@@ -232,7 +247,7 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
       </div>
       <p class="small">«Темп с паузами» (Фарнсворт): буквы звучат быстро, а паузы между ними длиннее. Так учишь букву на слух целиком, а не считаешь точки.</p>
       <div class="row">
-        <button class="btn" id="unlockAll">Открыть все буквы</button>
+        <button class="btn" id="unlockAll">Открыть все знаки набора</button>
         <button class="btn" id="resetAll" style="border-color:#6a2a24">Сбросить прогресс</button>
       </div>
     </section>
@@ -242,61 +257,94 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
 
 <script>
 const $=s=>document.querySelector(s);
-const CODE={A:'.-',B:'-...',C:'-.-.',D:'-..',E:'.',F:'..-.',G:'--.',H:'....',I:'..',J:'.---',K:'-.-',L:'.-..',M:'--',N:'-.',O:'---',P:'.--.',Q:'--.-',R:'.-.',S:'...',T:'-',U:'..-',V:'...-',W:'.--',X:'-..-',Y:'-.--',Z:'--..'};
-const REV=Object.fromEntries(Object.entries(CODE).map(([k,v])=>[v,k]));
-const ORDER='ETIANMSURWDKGOHVFLPJBXCYZQ'.split(''); // от корня дерева вниз
-const POS={'':[194,95],E:[230,95],I:[270,95],S:[312,95],H:[354,95],U:[270,152],F:[270,210],V:[312,152],
- A:[230,267],R:[272,267],L:[314,267],W:[230,382],P:[274,382],J:[230,440],
- T:[158,95],M:[100,95],O:[42,95],G:[100,153],Q:[42,153],Z:[100,210],
- N:[158,267],K:[101,267],Y:[43,267],C:[101,325],D:[158,382],X:[101,382],B:[158,440]};
-const LBL={E:[0,-21],I:[0,-21],S:[0,-21],H:[0,-21],T:[0,-21],M:[0,-21],O:[0,-21],U:[-19,2],V:[19,2],F:[19,2],
- G:[20,2],Q:[0,21],Z:[20,2],Y:[0,-18],K:[0,-18],C:[-20,10],N:[20,2],A:[-20,10],R:[0,23],L:[20,2],
- X:[-25,2],D:[18,-14],B:[-21,2],W:[-21,10],P:[21,2],J:[21,2]};
-const pretty=c=>c.replace(/\./g,'•').replace(/-/g,'—');
-const WORDS=('ME AT IT IN AN TEA MAN MEN NET TEN TAN TIN MAT MET AIM MAIN MEAT MINT TEAM TIME ITEM NAME MEAN TAME ANT ATE EAT SAT SIT SET SEA SUN RUN RAT RED TREE STAR RAIN TRAIN NURSE DIRT WIND MIND SEND DARK GOOD KING DOG GOD HOT HIS SHE THE AND NOT OUT ONE NOW HOW WHO WAR WORK WORD WATER RADIO NORTH SOUTH EAST WEST HOME HOUSE FISH FIRE LIFE LOVE LIGHT NIGHT HELP SOS SHIP SEA STORM SIGNAL MORSE CODE BOX FOX JAM JUMP JOY YES YOU YEAR SKY QUIZ ZONE ZERO QUEEN BLACK WHITE GREEN PILOT PLANE POWER VOICE WAVE ECHO ALPHA BRAVO DELTA HOTEL'
- ).split(' ');
+const LAT={A:'.-',B:'-...',C:'-.-.',D:'-..',E:'.',F:'..-.',G:'--.',H:'....',I:'..',J:'.---',K:'-.-',L:'.-..',M:'--',N:'-.',O:'---',P:'.--.',Q:'--.-',R:'.-.',S:'...',T:'-',U:'..-',V:'...-',W:'.--',X:'-..-',Y:'-.--',Z:'--..'};
+const RU={А:'.-',Б:'-...',В:'.--',Г:'--.',Д:'-..',Е:'.',Ж:'...-',З:'--..',И:'..',Й:'.---',К:'-.-',Л:'.-..',М:'--',Н:'-.',О:'---',П:'.--.',Р:'.-.',С:'...',Т:'-',У:'..-',Ф:'..-.',Х:'....',Ц:'-.-.',Ч:'---.',Ш:'----',Щ:'--.-',Ъ:'--.--',Ы:'-.--',Ь:'-..-',Э:'..-..',Ю:'..--',Я:'.-.-'};
+const NUM={1:'.----',2:'..---',3:'...--',4:'....-',5:'.....',6:'-....',7:'--...',8:'---..',9:'----.',0:'-----'};
+const ALL={...LAT,...RU,...NUM};
+const SETS={
+  lat:{name:'LAT',chars:LAT,order:'ETIANMSURWDKGOHVFLPJBXCYZQ',start:4,unit:'Буквы'},
+  ru:{name:'РУС',chars:RU,order:'ЕТИАНМСУРВДКГОХЖФЛЯПЙБЬЦЫЗЩЧШЮЭЪ',start:4,unit:'Буквы'},
+  num:{name:'0–9',chars:NUM,order:'5019283746',start:4,unit:'Цифры'}};
+// позиции на сетке: код -> [колонка, ряд, сторона подписи]
+const LAY={'.':[1,0,'u'],'..':[2,0,'u'],'...':[5,0,'u'],'....':[6,0,'u'],'.....':[7,0,'u'],
+ '....-':[6,1,'r'],'...-':[5,1,'r'],'...--':[5,2,'r'],
+ '..-':[2,1,'l'],'..-.':[2,2,'l'],'..-..':[2,3,'l'],'..--':[3,1,'r'],'..---':[3,2,'r'],
+ '.-':[1,4,'l'],'.-.':[2,4,'u'],'.-..':[3,4,'r'],'.-.-':[2,5,'r'],
+ '.--':[1,6,'l'],'.--.':[2,6,'r'],'.---':[1,7,'l'],'.----':[2,7,'r'],
+ '-':[-1,0,'u'],'--':[-2,0,'u'],'---':[-5,0,'u'],'----':[-6,0,'u'],'-----':[-7,0,'u'],
+ '----.':[-6,1,'l'],'---.':[-5,1,'r'],'---..':[-5,2,'r'],
+ '--.':[-2,1,'r'],'--..':[-2,2,'r'],'--...':[-2,3,'r'],'--.-':[-3,1,'l'],'--.--':[-3,2,'l'],
+ '-.':[-1,4,'r'],'-.-':[-2,4,'u'],'-.--':[-3,4,'l'],'-.-.':[-2,5,'l'],
+ '-..':[-1,6,'r'],'-..-':[-2,6,'l'],'-...':[-1,7,'r'],'-....':[-2,7,'l']};
+const CX=46,RY=56;
+const pretty=c=>(c||'').replace(/\./g,'•').replace(/-/g,'—');
+const WL={
+ lat:('ME AT IT IN AN TEA MAN MEN NET TEN TAN TIN MAT MET AIM MAIN MEAT MINT TEAM TIME ITEM NAME MEAN TAME ANT ATE EAT SAT SIT SET SEA SUN RUN RAT RED TREE STAR RAIN TRAIN NURSE DIRT WIND MIND SEND DARK GOOD KING DOG HOT HIS SHE THE AND NOT OUT ONE NOW HOW WHO WAR WORK WORD WATER RADIO NORTH SOUTH EAST WEST HOME HOUSE FISH FIRE LIFE LOVE LIGHT NIGHT HELP SOS SHIP STORM SIGNAL MORSE CODE BOX FOX JAM JUMP JOY YES YOU YEAR SKY QUIZ ZONE ZERO QUEEN BLACK WHITE GREEN PILOT PLANE POWER VOICE WAVE ECHO ALPHA BRAVO DELTA HOTEL').split(' '),
+ ru:('ТАМ НЕТ ТЕМА ТИНА МИНА МАМА АНТЕННА ИМЕНА ТАНК МАК КОТ КИТ ДОМ ДЫМ НОС СОН СОК СУП МИР МЕСТО ТЕСТ ДА ДЕД РОТ РУКА НОГА ВОДА ВЕТЕР ГОРА ГОРОД ДОРОГА СВЕТ ЗВУК СИГНАЛ РАДИО МОРЕ ЗИМА ЛЕТО ЛЕС ЛУНА ПАПА ХЛЕБ МОЛОКО КНИГА ШКОЛА ДРУГ ЖИЗНЬ ВРЕМЯ ЮГ СЕВЕР ВОСТОК ЗАПАД ПРИВЕТ ПОКА ЭХО ЩИТ ЯМА ЮЛА ЧАС ЧАЙ ШАР ЖУК ДЕНЬ НОЧЬ ПОДЪЕЗД ОБЪЕКТ ЦЕЛЬ ЦВЕТ СЫР МЫШЬ РЫБА ФЛАГ ФОТО ЭФИР СВЯЗЬ ПРИЕМ ПЕРЕДАЧА КЛЮЧ АЗБУКА МОРЗЕ').split(' ')};
 const HINT={trace:['Трасса',0.5],tree:['Дерево',1],blind:['Вслепую',2]};
 const SRC={sound:['🔊 Звук',1.5],light:['💡 Свет',1.5],signs:['•— Знаки',1]};
+// физические клавиши -> буквы (чтобы раскладка не мешала)
+const RUKEY={KeyQ:'Й',KeyW:'Ц',KeyE:'У',KeyR:'К',KeyT:'Е',KeyY:'Н',KeyU:'Г',KeyI:'Ш',KeyO:'Щ',KeyP:'З',BracketLeft:'Х',BracketRight:'Ъ',
+ KeyA:'Ф',KeyS:'Ы',KeyD:'В',KeyF:'А',KeyG:'П',KeyH:'Р',KeyJ:'О',KeyK:'Л',KeyL:'Д',Semicolon:'Ж',Quote:'Э',
+ KeyZ:'Я',KeyX:'Ч',KeyC:'С',KeyV:'М',KeyB:'И',KeyN:'Т',KeyM:'Ь',Comma:'Б',Period:'Ю',Backquote:'Е'};
+const QW={KeyQ:'Q',KeyW:'W',KeyE:'E',KeyR:'R',KeyT:'T',KeyY:'Y',KeyU:'U',KeyI:'I',KeyO:'O',KeyP:'P',BracketLeft:'[',BracketRight:']',
+ KeyA:'A',KeyS:'S',KeyD:'D',KeyF:'F',KeyG:'G',KeyH:'H',KeyJ:'J',KeyK:'K',KeyL:'L',Semicolon:';',Quote:"'",
+ KeyZ:'Z',KeyX:'X',KeyC:'C',KeyV:'V',KeyB:'B',KeyN:'N',KeyM:'M',Comma:',',Period:'.',Backquote:'`'};
+const L2R={},R2L={};for(const k in RUKEY){L2R[QW[k]]=RUKEY[k];if(/[A-Z]/.test(QW[k]))R2L[RUKEY[k]]=QW[k]}
+R2L['Ё']='`';
 
 // ---------- state ----------
-const DEF={score:0,combo:0,best:0,unlocked:4,stats:{},today:0,streak:0,lastDay:'',answers:0,correct:0,
+const DEF={score:0,combo:0,best:0,today:0,day:'',streak:0,lastDay:'',answers:0,correct:0,prog:{},
   set:{wpm:18,fwpm:8,tone:620,vol:0.6,gap:700,thr:220,goal:300},
-  ui:{mode:'free',txHint:'tree',rxHint:'tree',rxSrc:'sound',rxUnit:'l'}};
+  ui:{mode:'free',set:'lat',base:'lat',txHint:'tree',rxHint:'tree',rxSrc:'sound',rxUnit:'l'}};
 let P;
-try{const s=JSON.parse(localStorage.getItem('morseTree.v1'));P={...DEF,...s,set:{...DEF.set,...(s&&s.set)},ui:{...DEF.ui,...(s&&s.ui)}}}catch(e){P=structuredClone(DEF)}
-if(!P||!P.stats)P=structuredClone(DEF);
+try{const s=JSON.parse(localStorage.getItem('morseTree.v1'));P={...structuredClone(DEF),...s,set:{...DEF.set,...(s&&s.set)},ui:{...DEF.ui,...(s&&s.ui)}}}catch(e){P=structuredClone(DEF)}
+if(!P||typeof P!=='object')P=structuredClone(DEF);
+P.prog=P.prog||{};
+for(const k in SETS)P.prog[k]=P.prog[k]||{unlocked:SETS[k].start,stats:{}};
+if(P.stats){P.prog.lat.stats=P.stats;P.prog.lat.unlocked=P.unlocked||4;delete P.stats;delete P.unlocked}
 const save=()=>{try{localStorage.setItem('morseTree.v1',JSON.stringify(P))}catch(e){}};
 const S=P.set;
 const dayStr=(d=new Date())=>d.toISOString().slice(0,10);
 const yday=()=>dayStr(new Date(Date.now()-864e5));
 function rollDay(){const t=dayStr();if(P.day!==t){P.day=t;P.today=0}if(P.lastDay!==t&&P.lastDay!==yday())P.streak=0}
 rollDay();
-const stat=L=>P.stats[L]||(P.stats[L]={n:0,ok:0,e:0});
-const active=()=>ORDER.slice(0,P.unlocked);
+const G=()=>P.prog[P.ui.set];
+const order=()=>[...SETS[P.ui.set].order];
+const pool=()=>SETS[P.ui.set].chars;
+const stat=L=>G().stats[L]||(G().stats[L]={n:0,ok:0,e:0});
+const active=()=>order().slice(0,G().unlocked);
+const norm=s=>s.toUpperCase().replace(/Ё/g,'Е');
 
 // ---------- tree ----------
-const NODE={},EDGE={};
+let TREE={},REV={};const NODE={},EDGE={};
 function buildTree(){
-  const svg=$('#tree');
+  TREE=P.ui.set==='num'?{...SETS[P.ui.base].chars,...NUM}:{...pool()};
+  REV={};for(const [k,v] of Object.entries(TREE))REV[v]=k;
+  const codes=new Set();for(const c of Object.values(TREE))for(let i=1;i<=c.length;i++)codes.add(c.slice(0,i));
+  const xy=c=>c===''?[0,0]:[LAY[c][0]*CX,LAY[c][1]*RY];
+  let x0=-160,x1=160,y1=0;
+  codes.forEach(c=>{const[x,y]=xy(c);x0=Math.min(x0,x-45);x1=Math.max(x1,x+45);y1=Math.max(y1,y+42)});
+  const svg=$('#tree');svg.setAttribute('viewBox',`${x0} -88 ${x1-x0} ${y1+88}`);
   let h=`<defs><filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-  <text class="title" x="40" y="38">MORSE</text><text class="title" x="250" y="38">CODE</text>
-  <circle cx="378" cy="22" r="9" fill="#000" stroke="#7d6838" stroke-width="2"/>`;
-  for(const [L,c] of Object.entries(CODE)){
-    const [x1,y1]=POS[REV[c.slice(0,-1)]||''],[x2,y2]=POS[L];
-    h+=`<line class="edge" data-c="${c}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
-  }
-  h+=`<g stroke="#c8a464" stroke-width="2.5" fill="none" stroke-linejoin="round"><path d="M194 95V58"/><path d="M180 50L194 72L208 50Z"/><path d="M186 50L194 64L202 50"/></g><circle class="root" id="root" cx="194" cy="95" r="5"/>`;
-  for(const [L,c] of Object.entries(CODE)){
-    const [x,y]=POS[L],[dx,dy]=LBL[L];
-    const sh=c.endsWith('.')?`<circle class="sh" cx="${x}" cy="${y}" r="12"/>`:`<rect class="sh" x="${x-16}" y="${y-9}" width="32" height="18" rx="2"/>`;
-    h+=`<g class="node" data-c="${c}" data-l="${L}"><circle cx="${x}" cy="${y}" r="22" fill="transparent"/>${sh}<text class="lbl" x="${x+dx}" y="${y+dy}">${L}</text></g>`;
-  }
+  <text class="title" x="-38" y="-52" text-anchor="end">MORSE</text><text class="title" x="38" y="-52">CODE</text>
+  <circle cx="${x1-22}" cy="-66" r="9" fill="#000" stroke="#7d6838" stroke-width="2"/>`;
+  codes.forEach(c=>{const[a,b]=xy(c.slice(0,-1)),[x,y]=xy(c);h+=`<line class="edge" data-c="${c}" x1="${a}" y1="${b}" x2="${x}" y2="${y}"/>`});
+  h+=`<g stroke="#c8a464" stroke-width="2.5" fill="none" stroke-linejoin="round"><path d="M0 0V-37"/><path d="M-14 -45L0 -23L14 -45Z"/><path d="M-8 -45L0 -31L8 -45"/></g><circle class="root" id="root" cx="0" cy="0" r="5"/>`;
+  codes.forEach(c=>{const[x,y]=xy(c),L=REV[c];
+    if(!L){h+=`<g class="node empty" data-c="${c}"><circle class="sh" cx="${x}" cy="${y}" r="5"/></g>`;return}
+    const dot=c.endsWith('.'),side=LAY[c][2];
+    const off={u:[0,-22],d:[0,24],l:[dot?-23:-27,1],r:[dot?23:27,1]}[side];
+    const sh=dot?`<circle class="sh" cx="${x}" cy="${y}" r="12"/>`:`<rect class="sh" x="${x-16}" y="${y-9}" width="32" height="18" rx="2"/>`;
+    h+=`<g class="node" data-c="${c}" data-l="${L}"><circle cx="${x}" cy="${y}" r="22" fill="transparent"/>${sh}<text class="lbl" x="${x+off[0]}" y="${y+off[1]}">${L}</text></g>`;
+  });
   svg.innerHTML=h;
+  for(const k in NODE)delete NODE[k];for(const k in EDGE)delete EDGE[k];
   svg.querySelectorAll('.node').forEach(n=>NODE[n.dataset.c]=n);
   svg.querySelectorAll('.edge').forEach(e=>EDGE[e.dataset.c]=e);
-  svg.addEventListener('click',e=>{const n=e.target.closest('.node');if(!n)return;
-    const L=n.dataset.l;play(L,{trace:true});$('#kpCode').textContent=L+'  '+pretty(CODE[L]);});
 }
+$('#tree').addEventListener('click',e=>{const n=e.target.closest('.node');if(!n||!n.dataset.l)return;
+  const L=n.dataset.l;play(L,{trace:true});$('#kpCode').textContent=L+'  '+pretty(ALL[L]);});
 function treeClear(){document.querySelectorAll('#tree .lit,#tree .cur,#tree .bad').forEach(e=>e.classList.remove('lit','cur','bad'))}
 function treeShow(code){
   treeClear();if(!code)return;$('#root').classList.add('lit');let v='';
@@ -325,9 +373,9 @@ function timing(){const u=1200/S.wpm,fw=Math.min(S.fwpm,S.wpm),ta=(60*S.wpm-37.2
   return{u,cg:Math.max(3*u,3*ta/19),wg:Math.max(7*u,7*ta/19)}}
 function play(text,{sound=true,light=false,trace=false}={}){
   stopPlay();const tok=playTok;const{u,cg,wg}=timing();const ev=[];let t=0;
-  text.toUpperCase().trim().split(/\s+/).forEach((w,wi)=>{
+  norm(text).trim().split(/\s+/).forEach((w,wi)=>{
     if(wi)t+=wg-cg;
-    [...w].forEach((ch,ci)=>{const c=CODE[ch];if(!c)return;if(ci)t+=cg-u;
+    [...w].forEach((ch,ci)=>{const c=ALL[ch];if(!c)return;if(ci)t+=cg-u;
       [...c].forEach((s,si)=>{const d=s==='.'?u:3*u;ev.push({t,d,p:c.slice(0,si+1)});t+=d+u});});
   });
   const total=t;
@@ -345,7 +393,7 @@ function play(text,{sound=true,light=false,trace=false}={}){
 const K={code:'',timer:null,down:0};
 function kChange(){$('#kpCode').innerHTML=K.code?pretty(K.code):'&nbsp;';
   if(!(mode==='tx'&&P.ui.txHint==='blind'))treeShow(K.code);
-  if(K.code&&!REV[K.code]&&![...Object.values(CODE)].some(c=>c.startsWith(K.code))){clearTimeout(K.timer);K.timer=setTimeout(kCommit,250)}}
+  if(K.code&&!NODE[K.code]){clearTimeout(K.timer);K.timer=setTimeout(kCommit,250)}}
 function kAdd(s){clearTimeout(K.timer);K.code+=s;kChange();K.timer=setTimeout(kCommit,S.gap)}
 function kCommit(){clearTimeout(K.timer);if(!K.code)return;const c=K.code;K.code='';const L=REV[c]||null;
   setTimeout(()=>{if(!K.code){treeClear();$('#kpCode').innerHTML='&nbsp;'}},500);
@@ -377,10 +425,10 @@ function award(L,ok,rt,mult,anchor){
 }
 function bonus(pts,anchor){P.score+=pts;P.today+=pts;popup('+'+pts,anchor);save();hud()}
 function checkUnlock(){
-  if(P.unlocked>=26)return;
+  const o=order();if(G().unlocked>=o.length)return;
   if(active().every(L=>{const s=stat(L);return s.n>=4&&s.e>=0.75})){
-    const nw=ORDER.slice(P.unlocked,P.unlocked+2);P.unlocked=Math.min(26,P.unlocked+2);
-    P.score+=50;toast('🔓 Новые буквы: '+nw.map(l=>l+' '+pretty(CODE[l])).join(',  ')+'  (+50)');
+    const nw=o.slice(G().unlocked,G().unlocked+2);G().unlocked=Math.min(o.length,G().unlocked+2);
+    P.score+=50;toast('🔓 Новые знаки: '+nw.map(l=>l+' '+pretty(ALL[l])).join(',  ')+'  (+50)');
     if(mode==='rx')rxGrid();
   }
 }
@@ -390,7 +438,7 @@ function pick(last){
   let r=Math.random()*tot;for(let i=0;i<a.length;i++){r-=w[i];if(r<=0)return a[i]}return a[a.length-1];
 }
 function pickWord(){
-  const set=new Set(active());const ok=WORDS.filter(w=>[...w].every(c=>set.has(c)));
+  const set=new Set(active());const ok=(WL[P.ui.set]||[]).filter(w=>[...w].every(c=>set.has(c)));
   if(ok.length>=6&&Math.random()<0.8)return ok[Math.floor(Math.random()*ok.length)];
   const n=3+Math.floor(Math.random()*3);let w='';for(let i=0;i<n;i++)w+=pick(w.slice(-1));return w;
 }
@@ -423,6 +471,12 @@ function setMode(m){
   $('#treeCard').classList.toggle('covered',blind);
   if(m==='rx')rxStart();if(m==='tx')txNext();if(m==='stats')renderStats();
 }
+function setSet(v){
+  P.ui.set=v;if(v!=='num')P.ui.base=v;save();buildTree();
+  seg($('#rxUnit'),{l:SETS[v].unit,w:[v==='num'?'Группы':'Слова',1.2]},P.ui.rxUnit,u=>{P.ui.rxUnit=u;save();rxStart()});
+  $('#playTxt').placeholder=v==='ru'?'СОС ПРИВЕТ':v==='num'?'73 88 2026':'SOS HELLO';
+  setMode(mode);
+}
 
 // free
 let tape='';
@@ -433,33 +487,33 @@ function freeLetter(L){tape+=(L||'?');if(tape.length>200)tape=tape.slice(-200);r
 const TX={target:null,t0:0,busy:false};
 function txMultText(){$('#txMult').textContent='множитель ×'+HINT[P.ui.txHint][1]+' · комбо ×'+comboMult()}
 function txNext(){TX.busy=false;TX.target=pick(TX.target);TX.t0=performance.now();$('#txTarget').textContent=TX.target;$('#txFb').textContent='';
-  treeGhost(P.ui.txHint==='trace'?CODE[TX.target]:'');txMultText()}
+  treeGhost(P.ui.txHint==='trace'?ALL[TX.target]:'');txMultText()}
 function txLetter(L,c){
-  if(TX.busy||!TX.target)return;TX.busy=true;const ok=L===TX.target;
+  if(TX.busy||!TX.target)return;TX.busy=true;const ok=c===ALL[TX.target];
   const pts=award(TX.target,ok,performance.now()-TX.t0,HINT[P.ui.txHint][1],$('#txTarget'));
   const fb=$('#txFb');fb.className='fb '+(ok?'ok':'no');
   if(ok){fb.textContent='✓ '+TX.target+' '+pretty(c)+'   +'+pts;setTimeout(txNext,700)}
-  else{fb.textContent='✗ ты передал '+(L||'?')+' ('+pretty(c)+'), нужно '+pretty(CODE[TX.target]);
-    peek(2200);treeGhost(CODE[TX.target]);setTimeout(()=>play(TX.target,{trace:true}),400);setTimeout(txNext,2600)}
+  else{fb.textContent='✗ ты передал '+(L||'?')+' ('+pretty(c)+'), нужно '+pretty(ALL[TX.target]);
+    peek(2200);treeGhost(ALL[TX.target]);setTimeout(()=>play(TX.target,{trace:true}),400);setTimeout(txNext,2600)}
   txMultText();
 }
 
 // rx
-const RX={target:null,t0:0,answered:true,ready:false};
+const RX={target:null,t0:0,answered:true};
 function rxMult(){return HINT[P.ui.rxHint][1]*SRC[P.ui.rxSrc][1]*(P.ui.rxUnit==='w'?1.2:1)}
-function rxGrid(){
-  $('#rxGrid').innerHTML=active().slice().sort().map(L=>`<button data-l="${L}">${L}</button>`).join('');
-}
+function rxGrid(){$('#rxGrid').innerHTML=active().slice().sort((a,b)=>a.localeCompare(b,'ru')).map(L=>`<button data-l="${L}">${L}</button>`).join('')}
 function rxStart(){
   const w=P.ui.rxUnit==='w';$('#rxGrid').classList.toggle('hidden',w);$('#rxWordForm').classList.toggle('hidden',!w);
+  $('#rxWord').inputMode=P.ui.set==='num'?'numeric':'text';
   rxGrid();
-  $('#rxTip').textContent=P.ui.rxHint==='trace'?'Трасса: дерево подсвечивает путь в момент сигнала. Следи за огнём и запоминай, куда он ведёт.'
-    :P.ui.rxHint==='tree'?'Дерево открыто: веди путь по дереву сам. Точка — кружок, тире — прямоугольник.'
-    :'Вслепую: только память. Очки ×2.';
+  const kb=w?'Впиши ответ в поле и нажми Enter. Раскладка не важна, текст переведётся сам.'
+    :'⌨ Отвечай с клавиатуры: нажми клавишу нужного знака, раскладка не важна. Пробел — повтор, Enter — дальше.';
+  $('#rxTip').textContent=kb+' '+(P.ui.rxHint==='trace'?'Трасса: дерево подсвечивает путь в такт сигналу.'
+    :P.ui.rxHint==='tree'?'Дерево открыто: веди путь по нему сам.':'Вслепую: только память, очки ×2.');
   rxNext();
 }
 async function rxNext(){
-  RX.answered=false;RX.ready=false;$('#rxFb').textContent='';$('#rxDiff').innerHTML='';$('#rxWord').value='';
+  RX.answered=false;$('#rxFb').textContent='';$('#rxDiff').innerHTML='';$('#rxWord').value='';$('#rxEcho').innerHTML='';
   RX.target=P.ui.rxUnit==='w'?pickWord():pick(RX.target);
   $('#rxMult').textContent='множитель ×'+(+rxMult().toFixed(2))+' · комбо ×'+comboMult();
   treeClear();await rxPresent();
@@ -468,54 +522,76 @@ async function rxPresent(){
   const src=P.ui.rxSrc,trace=P.ui.rxHint==='trace',t=RX.target;
   $('#rxSigns').textContent='';RX.t0=performance.now()+99999;
   $('#led').classList.toggle('hidden',src!=='light');$('#rxSigns').classList.toggle('hidden',src!=='signs');
-  if(src==='signs'){$('#rxSigns').textContent=[...t].map(c=>pretty(CODE[c])).join('  ');
-    if(trace&&t.length===1)treeShow(CODE[t]);RX.t0=performance.now();}
+  if(src==='signs'){$('#rxSigns').textContent=[...t].map(c=>pretty(ALL[c])).join('  ');
+    if(trace&&t.length===1)treeShow(ALL[t]);RX.t0=performance.now();}
   else{const fin=await play(t,{sound:src==='sound',light:src==='light',trace});
     if(fin){RX.t0=performance.now();if(trace)setTimeout(()=>{if(!RX.answered)treeClear()},500)}}
-  RX.ready=true;
-  if(P.ui.rxUnit==='w'&&matchMedia('(pointer:fine)').matches)$('#rxWord').focus();
+  if(P.ui.rxUnit==='w'&&matchMedia('(pointer:fine)').matches&&!RX.answered)$('#rxWord').focus();
 }
 function rxAnswer(ans,btn){
   if(RX.answered||!RX.target)return;RX.answered=true;
   const rt=Math.max(0,performance.now()-RX.t0),t=RX.target,fb=$('#rxFb');
   if(P.ui.rxUnit==='l'){
+    $('#rxEcho').innerHTML='твой ответ:<b>'+ans+'</b>';
     const ok=ans===t;const pts=award(t,ok,rt,rxMult(),btn||$('#rxFb'));
     btn&&btn.classList.add(ok?'right':'wrong');
     const rb=$(`#rxGrid [data-l="${t}"]`);
-    if(ok){fb.className='fb ok';fb.textContent='✓ '+t+'  '+pretty(CODE[t])+'   +'+pts;treeShow(CODE[t]);
+    if(ok){fb.className='fb ok';fb.textContent='✓ '+t+'  '+pretty(ALL[t])+'   +'+pts;treeShow(ALL[t]);
       setTimeout(()=>{btn&&btn.classList.remove('right');rxNext()},800)}
-    else{fb.className='fb no';fb.textContent='✗ это '+t+'  '+pretty(CODE[t])+(ans?'   (а '+ans+' = '+pretty(CODE[ans]||'')+')':'');
+    else{fb.className='fb no';fb.textContent='✗ это '+t+'  '+pretty(ALL[t])+(ALL[ans]?'   (а '+ans+' = '+pretty(ALL[ans])+')':'');
       rb&&rb.classList.add('right');peek(2400);play(t,{trace:true});
       setTimeout(()=>{btn&&btn.classList.remove('wrong');rb&&rb.classList.remove('right');rxNext()},2600)}
   }else{
-    const a=ans.toUpperCase().replace(/[^A-Z]/g,'');let good=0,html='';
+    const a=norm(ans).replace(/[^A-ZА-Я0-9]/g,'');let good=0,html='';
     const per=rt/t.length;
     [...t].forEach((c,i)=>{const ok=a[i]===c;if(ok)good++;html+=`<span class="${ok?'g':'r'}">${c}</span>`;});
     let pts=0;[...t].forEach((c,i)=>{pts+=award(c,a[i]===c,per,rxMult(),$('#rxWord'))});
     $('#rxDiff').innerHTML=html;
     if(good===t.length){const b=Math.round(5*t.length*comboMult());bonus(b,$('#rxDiff'));
-      fb.className='fb ok';fb.textContent='✓ слово целиком!  +'+(pts+b);setTimeout(rxNext,1100)}
-    else{fb.className='fb no';fb.textContent=`${good}/${t.length} букв · было: ${[...t].map(c=>c+' '+pretty(CODE[c])).join('  ')}`;
+      fb.className='fb ok';fb.textContent='✓ целиком!  +'+(pts+b);setTimeout(rxNext,1100)}
+    else{fb.className='fb no';fb.textContent=`${good}/${t.length} · было: ${[...t].map(c=>c+' '+pretty(ALL[c])).join('  ')}`;
       setTimeout(rxNext,3600)}
   }
+}
+// перевод нажатой клавиши в знак текущего набора независимо от раскладки
+function keyChar(e){
+  const set=P.ui.set,k=norm(e.key||'');
+  if(set==='num'){const m=(e.code||'').match(/^(?:Digit|Numpad)(\d)$/);return m?m[1]:(/^\d$/.test(k)?k:null)}
+  if(set==='lat'){if(/^[A-Z]$/.test(k))return k;const q=QW[e.code];return q&&/[A-Z]/.test(q)?q:null}
+  if(/^[А-Я]$/.test(k))return k;return RUKEY[e.code]||null;
+}
+function fixLayout(v){
+  const set=P.ui.set;v=norm(v);
+  if(set==='num')return v.replace(/[^0-9]/g,'');
+  if(set==='lat')return [...v].map(c=>R2L[c]&&/[A-Z]/.test(R2L[c])?R2L[c]:c).join('').replace(/[^A-Z]/g,'');
+  return [...v].map(c=>L2R[c]||c).join('').replace(/[^А-Я]/g,'');
 }
 
 // stats
 function renderStats(){
   const l=level();$('#sLv').textContent=l;$('#sRank').textContent=rank(l);
   $('#sNext').textContent='до уровня '+(l+1)+': '+(40*l*l-P.score)+' очков';
-  const acc=P.answers?Math.round(P.correct/P.answers*100):0;
-  $('#sStats').innerHTML=[['Очки',P.score],['Сегодня',P.today+' / '+S.goal],['Дней подряд','🔥 '+P.streak],['Лучшая серия',P.best],['Точность',acc+'%'],['Ответов',P.answers],['Открыто букв',P.unlocked+' / 26']]
+  const acc=P.answers?Math.round(P.correct/P.answers*100):0;const o=order();
+  $('#sStats').innerHTML=[['Очки',P.score],['Сегодня',P.today+' / '+S.goal],['Дней подряд','🔥 '+P.streak],['Лучшая серия',P.best],['Точность',acc+'%'],['Ответов',P.answers],['Открыто ('+SETS[P.ui.set].name+')',G().unlocked+' / '+o.length]]
     .map(([a,b])=>`<div class="stat"><span>${a}</span><b>${b}</b></div>`).join('');
-  $('#mGrid').innerHTML=ORDER.map((L,i)=>{const s=stat(L),lock=i>=P.unlocked;
-    return `<div class="ml ${lock?'locked':''}" data-l="${L}"><b>${L}</b><small>${pretty(CODE[L])}</small><div class="bar"><i style="width:${s.e*100}%;background:${s.e>=.75?'var(--green)':s.e>=.4?'var(--amber)':'var(--red)'}"></i></div></div>`}).join('');
+  $('#sSetTitle').textContent='Знаки набора '+SETS[P.ui.set].name;
+  $('#mGrid').innerHTML=o.map((L,i)=>{const s=stat(L),lock=i>=G().unlocked;
+    return `<div class="ml ${lock?'locked':''}" data-l="${L}"><b>${L}</b><small>${pretty(ALL[L])}</small><div class="bar"><i style="width:${s.e*100}%;background:${s.e>=.75?'var(--green)':s.e>=.4?'var(--amber)':'var(--red)'}"></i></div></div>`}).join('');
 }
 function bindSettings(){
   const m=[['Wpm','wpm',v=>v+' wpm'],['Fwpm','fwpm',v=>v+' wpm'],['Tone','tone',v=>v+' Гц'],['Vol','vol',v=>Math.round(v*100)+'%'],['Thr','thr',v=>v+' мс'],['Gap','gap',v=>v+' мс'],['Goal','goal',v=>v]];
   for(const [id,k,f] of m){const el=$('#set'+id),o=$('#o'+id);el.value=S[k];o.textContent=f(S[k]);
-    el.oninput=()=>{S[k]=+el.value;o.textContent=f(S[k]);if(k==='tone'&&osc)osc.frequency.value=S.tone;save();hud()};
+    el.oninput=()=>{S[k]=+el.value;o.textContent=f(S[k]);if(k==='tone'&&osc)osc.frequency.value=S.tone;save();hud();syncSpd()};
     el.onchange=()=>{if(k==='wpm'||k==='fwpm'||k==='tone'||k==='vol')play('PARIS')}}
 }
+// быстрые ползунки скорости в «Дереве» и «Расшифровке»
+function syncSpd(){
+  document.querySelectorAll('.wpmR').forEach(r=>r.value=S.wpm);document.querySelectorAll('.wpmO').forEach(o=>o.textContent=S.wpm+' wpm');
+  document.querySelectorAll('.fwR').forEach(r=>r.value=S.fwpm);document.querySelectorAll('.fwO').forEach(o=>o.textContent=Math.min(S.fwpm,S.wpm)+' wpm');
+  $('#setWpm').value=S.wpm;$('#oWpm').textContent=S.wpm+' wpm';$('#setFwpm').value=S.fwpm;$('#oFwpm').textContent=S.fwpm+' wpm';
+}
+document.querySelectorAll('.wpmR').forEach(r=>r.oninput=()=>{S.wpm=+r.value;syncSpd();save()});
+document.querySelectorAll('.fwR').forEach(r=>r.oninput=()=>{S.fwpm=+r.value;syncSpd();save()});
 
 // ---------- events ----------
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
@@ -527,14 +603,16 @@ document.querySelectorAll('.kbtn[data-s]').forEach(b=>b.addEventListener('pointe
 $('#tapeSpace').onclick=()=>{tape+=' ';renderTape()};
 $('#tapeBack').onclick=()=>{tape=tape.slice(0,-1);renderTape()};
 $('#tapeClear').onclick=()=>{tape='';renderTape()};
-$('#playBtn').onclick=()=>{const t=$('#playTxt').value.toUpperCase().replace(/[^A-Z ]/g,'');if(t.trim())play(t,{trace:true})};
+$('#playBtn').onclick=()=>{const t=norm($('#playTxt').value).replace(/[^A-ZА-Я0-9 ]/g,'');if(t.trim())play(t,{trace:true})};
 $('#playTxt').addEventListener('keydown',e=>{if(e.key==='Enter')$('#playBtn').click()});
 $('#rxGrid').addEventListener('click',e=>{const b=e.target.closest('button');if(b)rxAnswer(b.dataset.l,b)});
-$('#rxWordForm').addEventListener('submit',e=>{e.preventDefault();if(!RX.answered&&$('#rxWord').value.trim())rxAnswer($('#rxWord').value)});
+$('#rxWord').addEventListener('input',e=>{const el=e.target,v=fixLayout(el.value);if(v!==el.value)el.value=v});
+$('#rxWord').addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();$('#rxReplay').click()}});
+$('#rxWordForm').addEventListener('submit',e=>{e.preventDefault();if(RX.answered)rxNext();else if($('#rxWord').value.trim())rxAnswer($('#rxWord').value)});
 $('#rxReplay').onclick=()=>{if(!RX.answered)rxPresent()};
-$('#rxSkip').onclick=()=>{if(!RX.answered){RX.answered=true;P.combo=0;hud();$('#rxFb').className='fb no';$('#rxFb').textContent='пропуск: '+RX.target+'  '+[...RX.target].map(c=>pretty(CODE[c])).join(' ');setTimeout(rxNext,1500)}else rxNext()};
+$('#rxSkip').onclick=()=>{if(!RX.answered){RX.answered=true;P.combo=0;hud();$('#rxFb').className='fb no';$('#rxFb').textContent='пропуск: '+RX.target+'  '+[...RX.target].map(c=>pretty(ALL[c])).join(' ');setTimeout(rxNext,1500)}else rxNext()};
 $('#mGrid').addEventListener('click',e=>{const m=e.target.closest('.ml');if(m)play(m.dataset.l,{trace:true})});
-$('#unlockAll').onclick=()=>{P.unlocked=26;save();renderStats();toast('Все 26 букв открыты')};
+$('#unlockAll').onclick=()=>{G().unlocked=order().length;save();renderStats();toast('Все знаки набора '+SETS[P.ui.set].name+' открыты')};
 $('#resetAll').onclick=()=>{if(confirm('Сбросить весь прогресс?')){const set=P.set;P=structuredClone(DEF);P.set=set;save();location.reload()}};
 
 const typing=()=>document.activeElement&&document.activeElement.tagName==='INPUT'&&document.activeElement.type==='text';
@@ -543,26 +621,28 @@ document.addEventListener('keydown',e=>{
   if(mode==='free'||mode==='tx'){
     if(e.code==='Space'){e.preventDefault();if(!e.repeat)kDown()}
     else if(e.key==='ArrowLeft'||e.key==='-'){e.preventDefault();kTap('-')}
-    else if(e.key==='ArrowRight'||e.key==='.'){e.preventDefault();kTap('.')}
+    else if(e.key==='ArrowRight'||e.key==='.'||e.code==='Period'&&P.ui.set!=='ru'){e.preventDefault();kTap('.')}
     else if(e.key==='Enter'){e.preventDefault();kCommit()}
     else if(e.key==='Backspace'){e.preventDefault();kReset()}
   }else if(mode==='rx'){
-    if(e.code==='Space'){e.preventDefault();$('#rxReplay').click()}
-    else if(e.key==='Enter'){e.preventDefault();$('#rxSkip').click()}
-    else if(P.ui.rxUnit==='l'&&/^[a-z]$/i.test(e.key)){const L=e.key.toUpperCase();rxAnswer(L,$(`#rxGrid [data-l="${L}"]`))}
+    if(e.code==='Space'){e.preventDefault();$('#rxReplay').click();return}
+    if(e.key==='Enter'){e.preventDefault();$('#rxSkip').click();return}
+    if(P.ui.rxUnit==='w'){const ch=keyChar(e);if(ch&&!RX.answered){$('#rxWord').focus()}return}
+    const ch=keyChar(e);
+    if(ch&&pool()[ch]!==undefined){e.preventDefault();rxAnswer(ch,$(`#rxGrid [data-l="${ch}"]`))}
   }
 });
 document.addEventListener('keyup',e=>{if(e.code==='Space'&&(mode==='free'||mode==='tx')){e.preventDefault();kUp()}});
 window.addEventListener('blur',()=>{if(K.down)kUp()});
 
 // ---------- init ----------
-buildTree();
+seg($('#setSeg'),Object.fromEntries(Object.entries(SETS).map(([k,v])=>[k,v.name])),P.ui.set,setSet);
 seg($('#rxSrc'),SRC,P.ui.rxSrc,v=>{P.ui.rxSrc=v;save();rxStart()});
-seg($('#rxUnit'),{l:'Буквы',w:['Слова',1.2]},P.ui.rxUnit,v=>{P.ui.rxUnit=v;save();rxStart()});
 seg($('#rxHint'),HINT,P.ui.rxHint,v=>{P.ui.rxHint=v;save();$('#treeCard').classList.toggle('covered',v==='blind');treeClear();rxStart()});
 seg($('#txHint'),HINT,P.ui.txHint,v=>{P.ui.txHint=v;save();$('#treeCard').classList.toggle('covered',v==='blind');txNext()});
-bindSettings();hud();renderTape();
-setMode(P.ui.mode==='rx'?'free':P.ui.mode); // звук требует жеста — не стартуем приём сразу
+bindSettings();syncSpd();hud();renderTape();
+mode=P.ui.mode==='rx'?'free':P.ui.mode; // звук требует жеста — не стартуем приём сразу
+setSet(P.ui.set);
 </script>
 </body>
 </html>
