@@ -129,12 +129,37 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
 .node.empty{cursor:default}
 .setseg button{font-weight:600;font-family:var(--mono)}
 .setseg button.on{background:var(--gold);color:#16140c}
+.narr{margin:0 0 12px;line-height:1.55}
+.narr b{color:var(--gold)}
+.sthud{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;font:13px var(--mono);color:var(--muted)}
+.chem{display:flex;align-items:center;gap:8px;flex:1;max-width:280px}
+.chem .bar{flex:1;height:10px;border-radius:5px}
+.chem .bar i{background:linear-gradient(90deg,#ff5a4f,#ffc542,#39ff6a)}
+.chem b{color:var(--text);min-width:28px;text-align:right}
+.timer{width:100%;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.timer i{display:block;height:100%;width:100%;background:var(--amber)}
+.timer.low i{background:var(--red)}
+.opts{display:grid;gap:8px;margin:10px 0}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;background:#24251c;border:1px solid #3a3b2e;border-radius:12px;padding:12px 14px}
+.opt:hover{border-color:var(--gold)}
+.opt .k{font:700 18px var(--mono);color:var(--gold);min-width:64px}
+.opt.right{background:var(--green-d);border-color:var(--green)}
+.opt.wrong{background:#5a1f1a;border-color:var(--red)}
+.opt:disabled{cursor:default}
+.react{background:#0d0e0b;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:10px;padding:12px 14px;margin-top:8px}
+.react .d{font:700 14px var(--mono);margin-top:6px}
+.endbig{font-size:64px;text-align:center}
+#stLog div{padding:3px 0;border-bottom:1px dashed var(--line)}
+.sndbtn{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px 10px;font-size:16px}
+.sndbtn.off{border-color:var(--red);animation:pulse 1.4s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 4px rgba(255,90,79,.25)}}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">MORSE <b>●</b> TREE</div>
   <div class="seg setseg" id="setSeg" title="Набор знаков"></div>
+  <button class="sndbtn off" id="sndBtn" title="Звук">🔇</button>
   <div class="hud">
     <div class="chip" id="hScore"><span>очки</span><b>0</b></div>
     <div class="chip combo" id="hCombo"><span>комбо</span><b>0</b> <i>×1</i></div>
@@ -146,6 +171,7 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
   <button data-m="free">🌳 Дерево</button>
   <button data-m="rx">🎧 Расшифровка</button>
   <button data-m="tx">📡 Передача</button>
+  <button data-m="story">💘 Свидание</button>
   <button data-m="stats">📊 Прогресс</button>
 </nav>
 <div class="wrap">
@@ -215,6 +241,42 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
       <div class="big" id="txTarget">E</div>
       <div class="mult" id="txMult"></div>
       <div class="fb" id="txFb"></div>
+    </section>
+
+    <!-- STORY -->
+    <section class="panel hidden" id="p-story">
+      <div id="stIntro">
+        <h2>Сирано на связи</h2>
+        <p class="narr"><b>1825 год.</b> Художник Сэмюэл Морзе пишет портрет в Вашингтоне. Письмо о том, что его жене плохо, идёт к нему несколько дней. Когда он добирается домой, её уже похоронили. Через несколько лет Морзе изобретёт телеграф, чтобы важное доходило мгновенно.</p>
+        <p class="narr"><b>Сегодня.</b> Важное — это первое свидание твоего друга Кости. Костя красив, как Кристиан из «Сирано де Бержерака», и так же двух слов не может связать. Роксана ждёт его в кафе «Голубая устрица». Ты сидишь в машине напротив. Костя отстукивает тебе морзянкой на часы, что происходит, а ты отвечаешь командами. Как Сирано под балконом, только с вибрацией.</p>
+        <div class="row"><label>Сложность</label><div class="seg" id="stDiff"></div></div>
+        <div class="spd"><label>Скорость</label><input type="range" class="wpmR" min="5" max="35"><output class="wpmO"></output>
+          <label>Паузы</label><input type="range" class="fwR" min="3" max="35"><output class="fwO"></output></div>
+        <p class="small">Сообщения — на русском. Команду выбираешь, отстучав её букву ключом: <b>Е</b> •, <b>Т</b> —, <b>И</b> •• (очки ×1.5). Можно и кнопкой или клавишами 1/2/3. Ответ зависит от того, что именно передал Костя, так что угадать не получится. Не успеешь — Костя начнёт импровизировать. Не допусти этого.</p>
+        <div class="row"><button class="btn pri" id="stStart">💘 Начать свидание</button></div>
+        <p class="small" id="stEndings"></p>
+      </div>
+      <div id="stGame" class="hidden">
+        <div class="sthud"><span id="stScene"></span><div class="chem"><span>💘 Химия</span><div class="bar"><i id="stChem"></i></div><b id="stChemN">50</b></div></div>
+        <p class="narr" id="stNarr"></p>
+        <div class="stage">
+          <div class="small">📳 Часы Кости:</div>
+          <div class="led" id="stLed"></div>
+          <div class="signs" id="stSigns"></div>
+          <div class="timer"><i id="stTimer"></i></div>
+          <button class="btn sm" id="stReplay">↻ Повтор</button>
+        </div>
+        <form class="row" id="stDecForm" autocomplete="off"><input type="text" id="stDec" placeholder="расшифровка (бонус +20)" spellcheck="false"></form>
+        <div class="opts" id="stOpts"></div>
+        <div class="react hidden" id="stReact"></div>
+      </div>
+      <div id="stEnd" class="hidden">
+        <div class="endbig" id="stEndE"></div>
+        <h2 id="stEndT"></h2>
+        <p class="narr" id="stEndX"></p>
+        <div id="stLog" class="small"></div>
+        <div class="row" style="margin-top:12px"><button class="btn pri" id="stAgain">↻ Ещё свидание</button><button class="btn" id="stMenu">Меню</button></div>
+      </div>
     </section>
 
     <!-- shared keypad -->
@@ -318,8 +380,8 @@ const norm=s=>s.toUpperCase().replace(/Ё/g,'Е');
 
 // ---------- tree ----------
 let TREE={},REV={};const NODE={},EDGE={};
-function buildTree(){
-  TREE=P.ui.set==='num'?{...SETS[P.ui.base].chars,...NUM}:{...pool()};
+function buildTree(force){
+  TREE=force?{...SETS[force].chars}:P.ui.set==='num'?{...SETS[P.ui.base].chars,...NUM}:{...pool()};
   REV={};for(const [k,v] of Object.entries(TREE))REV[v]=k;
   const codes=new Set();for(const c of Object.values(TREE))for(let i=1;i<=c.length;i++)codes.add(c.slice(0,i));
   const xy=c=>c===''?[0,0]:[LAY[c][0]*CX,LAY[c][1]*RY];
@@ -358,15 +420,36 @@ function treeGhost(code){document.querySelectorAll('#tree .ghost').forEach(e=>e.
 let peekT;function peek(ms=1800){const c=$('#treeCard');c.classList.add('peek');clearTimeout(peekT);peekT=setTimeout(()=>c.classList.remove('peek'),ms)}
 
 // ---------- audio ----------
-let AC,osc,gain;
+let AC,osc,gain,unlocked=false;
+// iOS: беззвучный режим глушит Web Audio — переводим сессию в «playback» и держим тихий <audio>
+const SILENT='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+let silentEl;
 function audio(){
-  if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();osc=AC.createOscillator();gain=AC.createGain();gain.gain.value=0;osc.type='sine';osc.connect(gain).connect(AC.destination);osc.start()}
-  if(AC.state==='suspended')AC.resume();osc.frequency.value=S.tone;return AC;
+  if(!AC){
+    try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+    AC=new(window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
+    osc=AC.createOscillator();gain=AC.createGain();gain.gain.value=0;osc.type='sine';
+    const comp=AC.createDynamicsCompressor();osc.connect(gain).connect(comp).connect(AC.destination);osc.start();
+    AC.onstatechange=soundUI;
+  }
+  if(AC.state!=='running')AC.resume().catch(()=>{});
+  osc.frequency.value=S.tone;return AC;
 }
-const vol=()=>S.vol*0.35;
+function unlockAudio(){
+  audio();
+  if(!unlocked){unlocked=true;
+    try{silentEl=new Audio(SILENT);silentEl.loop=true;silentEl.setAttribute('playsinline','');silentEl.play().catch(()=>{})}catch(e){}
+    const b=AC.createBuffer(1,1,22050),s=AC.createBufferSource();s.buffer=b;s.connect(AC.destination);s.start(0);}
+  soundUI();
+}
+['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,unlockAudio,{capture:true,passive:true}));
+function soundUI(){const b=document.getElementById('sndBtn');if(!b)return;const ok=AC&&AC.state==='running'&&S.vol>0;
+  b.textContent=ok?'🔊':'🔇';b.title=ok?'Звук включён — нажми для проверки':'Звук выключен — нажми, чтобы включить';b.classList.toggle('off',!ok)}
+const vol=()=>S.vol*0.6;
+const ready=()=>{audio();return AC.state==='running'?Promise.resolve():AC.resume().catch(()=>{})};
 function toneOn(){audio();const t=AC.currentTime;gain.gain.cancelScheduledValues(t);gain.gain.setValueAtTime(gain.gain.value,t);gain.gain.linearRampToValueAtTime(vol(),t+0.005)}
 function toneOff(){if(!AC)return;const t=AC.currentTime;gain.gain.cancelScheduledValues(t);gain.gain.setValueAtTime(gain.gain.value,t);gain.gain.linearRampToValueAtTime(0,t+0.005)}
-const setLed=on=>$('#led').classList.toggle('on',on);
+const setLed=on=>document.querySelectorAll('.led').forEach(l=>l.classList.toggle('on',on));
 let playTok=0,timers=[];
 function stopPlay(){playTok++;timers.forEach(clearTimeout);timers=[];toneOff();setLed(false)}
 function timing(){const u=1200/S.wpm,fw=Math.min(S.fwpm,S.wpm),ta=(60*S.wpm-37.2*fw)/(S.wpm*fw)*1000;
@@ -379,14 +462,18 @@ function play(text,{sound=true,light=false,trace=false}={}){
       [...c].forEach((s,si)=>{const d=s==='.'?u:3*u;ev.push({t,d,p:c.slice(0,si+1)});t+=d+u});});
   });
   const total=t;
-  if(sound){audio();const t0=AC.currentTime+0.04,g=gain.gain,v=vol();g.cancelScheduledValues(0);g.setValueAtTime(0,AC.currentTime);
-    for(const e of ev){const a=t0+e.t/1000,b=a+e.d/1000;g.setValueAtTime(0,a);g.linearRampToValueAtTime(v,a+0.005);g.setValueAtTime(v,b-0.005);g.linearRampToValueAtTime(0,b)}}
-  const lag=sound?40:0;
-  for(const e of ev){
-    timers.push(setTimeout(()=>{if(tok!==playTok)return;if(light)setLed(true);if(trace)treeShow(e.p)},e.t+lag));
-    timers.push(setTimeout(()=>{if(tok!==playTok)return;if(light)setLed(false)},e.t+e.d+lag));
-  }
-  return new Promise(r=>timers.push(setTimeout(()=>r(tok===playTok),total+lag)));
+  const go=()=>new Promise(r=>{
+    if(tok!==playTok)return r(false);
+    if(sound&&AC){const t0=AC.currentTime+0.05,g=gain.gain,v=vol();g.cancelScheduledValues(0);g.setValueAtTime(0,AC.currentTime);
+      for(const e of ev){const a=t0+e.t/1000,b=a+e.d/1000;g.setValueAtTime(0,a);g.linearRampToValueAtTime(v,a+0.005);g.setValueAtTime(v,b-0.005);g.linearRampToValueAtTime(0,b)}}
+    const lag=sound?50:0;
+    for(const e of ev){
+      timers.push(setTimeout(()=>{if(tok!==playTok)return;if(light)setLed(true);if(trace)treeShow(e.p)},e.t+lag));
+      timers.push(setTimeout(()=>{if(tok!==playTok)return;if(light)setLed(false)},e.t+e.d+lag));
+    }
+    timers.push(setTimeout(()=>r(tok===playTok),total+lag));
+  });
+  return sound?ready().then(go):go();
 }
 
 // ---------- keyer ----------
@@ -397,7 +484,7 @@ function kChange(){$('#kpCode').innerHTML=K.code?pretty(K.code):'&nbsp;';
 function kAdd(s){clearTimeout(K.timer);K.code+=s;kChange();K.timer=setTimeout(kCommit,S.gap)}
 function kCommit(){clearTimeout(K.timer);if(!K.code)return;const c=K.code;K.code='';const L=REV[c]||null;
   setTimeout(()=>{if(!K.code){treeClear();$('#kpCode').innerHTML='&nbsp;'}},500);
-  if(mode==='free')freeLetter(L,c);else if(mode==='tx')txLetter(L,c);}
+  if(mode==='free')freeLetter(L,c);else if(mode==='tx')txLetter(L,c);else if(mode==='story')stKey(c);}
 function kReset(){clearTimeout(K.timer);K.code='';kChange()}
 function kDown(){if(K.down)return;stopPlay();clearTimeout(K.timer);K.down=performance.now();toneOn();$('#keyBtn').classList.add('down')}
 function kUp(){if(!K.down)return;const d=performance.now()-K.down;K.down=0;toneOff();$('#keyBtn').classList.remove('down');kAdd(d<S.thr?'.':'-')}
@@ -463,13 +550,16 @@ function seg(el,opts,val,on){
 // ---------- modes ----------
 let mode='free';
 function setMode(m){
-  stopPlay();kReset();treeClear();treeGhost('');mode=m;P.ui.mode=m;save();
+  stopPlay();kReset();treeClear();treeGhost('');
+  if(m==='story'||mode==='story'){ST.on=false;clearInterval(ST.raf);buildTree(m==='story'?'ru':null)}
+  mode=m;P.ui.mode=m;save();
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
-  ['free','rx','tx','stats'].forEach(x=>$('#p-'+x).classList.toggle('hidden',x!==m));
+  ['free','rx','tx','story','stats'].forEach(x=>$('#p-'+x).classList.toggle('hidden',x!==m));
   $('#keypad').classList.toggle('hidden',!(m==='free'||m==='tx'));
   const blind=(m==='rx'&&P.ui.rxHint==='blind')||(m==='tx'&&P.ui.txHint==='blind');
   $('#treeCard').classList.toggle('covered',blind);
-  if(m==='rx')rxStart();if(m==='tx')txNext();if(m==='stats')renderStats();
+  $('#setSeg').style.visibility=m==='story'?'hidden':'';
+  if(m==='rx')rxStart();if(m==='tx')txNext();if(m==='stats')renderStats();if(m==='story')stMenu();
 }
 function setSet(v){
   P.ui.set=v;if(v!=='num')P.ui.base=v;save();buildTree();
@@ -593,7 +683,149 @@ function syncSpd(){
 document.querySelectorAll('.wpmR').forEach(r=>r.oninput=()=>{S.wpm=+r.value;syncSpd();save()});
 document.querySelectorAll('.fwR').forEach(r=>r.oninput=()=>{S.fwpm=+r.value;syncSpd();save()});
 
+// ---------- story: «Сирано на связи» ----------
+const SCENES=[
+ {n:'<b>19:00.</b> Костя за столиком, Роксана только что села напротив. Нужен комплимент. Костя сообщает, на что смотреть:',
+  o:[{l:'Похвали платье',bad:'«Классное платье!» Роксана: «Это куртка. Я ещё не разделась». Официант сочувственно кашляет.'},
+     {l:'Похвали стрижку',bad:'«Шикарная стрижка!» Роксана в шапке. Она её ещё не снимала.'},
+     {l:'Похвали её смех',bad:'«Обожаю твой смех!» Она ещё ни разу не смеялась. Костя похвалил тишину.'}],
+  v:[{m:'ПЛАТЬЕ',ok:0,good:'«Тебе очень идёт этот цвет». Роксана поправляет волосы. Начало положено.'},
+     {m:'СТРИЖКА',ok:1,good:'«Новая стрижка? Смело и тебе идёт». — «Ты заметил!» Первая победа.'},
+     {m:'СМЕЕТСЯ',ok:2,good:'«У тебя заразительный смех». Она смеётся ещё громче. Соседний столик тоже.'}]},
+ {n:'<b>19:12.</b> Подходит официант. Костя в панике листает меню вверх ногами и передаёт, что ему удалось выяснить про Роксану:',
+  o:[{l:'Закажи салат на двоих',bad:'Принесли салат. Роксана с тоской смотрит на чужой стейк за соседним столом.'},
+     {l:'Закажи два стейка',bad:'Принесли стейки. Роксана отодвигается вместе со стулом.'},
+     {l:'Закажи тирамису и две ложки',bad:'Костя начал с десерта. Роксана: «Ты всегда так живёшь?»'}],
+  v:[{m:'ВЕГАН',ok:0,good:'В точку. Роксана семь минут рассказывает про чечевицу. Костя кивает как профессионал.'},
+     {m:'ЛЮБИТ МЯСО',ok:1,good:'«Ты тоже любишь с кровью?» Костя не знает, что это значит, но кивает. Совпадение!'},
+     {m:'СЛАДКОЕ',ok:2,good:'Один тирамису, две ложки. Классика ромкома. Роксана тает быстрее маскарпоне.'}]},
+ {n:'<b>19:25.</b> Роксана задаёт вопрос в лоб. Костя застыл с вилкой у рта. Сигнал:',
+  o:[{l:'Скажи: «Я пишу код»',bad:'«Я пишу код». Роксана: «…от домофона?» Вопрос был совсем не про это.'},
+     {l:'Скажи: «У меня два кота»',bad:'«У меня два кота». Пауза длиной в вечность. Вопрос был серьёзный.'},
+     {l:'Скажи: «Мне 27, но душой 40»',bad:'«Мне 27, но душой 40». Роксана медленно откладывает вилку.'}],
+  v:[{m:'РАБОТА',ok:0,good:'«Я пишу код». — «Тот самый, точка-тире?» Она шутит! Контакт установлен.'},
+     {m:'КОТЫ',ok:1,good:'«У меня два кота: Точка и Тире». Роксана показывает 400 фото своей кошки. Это любовь.'},
+     {m:'ВОЗРАСТ',ok:2,good:'Роксана смеётся: «Мне тоже 40 душой. Я ложусь в десять». Идеальный мэтч.'}]},
+ {n:'<b>19:40.</b> К столику подкатывает на электросамокате некий Гоша (как де Гиш у Ростана, только в худи). Он обнимает Роксану. Кто это?',
+  o:[{l:'Спокойно пожми ему руку',bad:'Костя сухо жмёт руку. «Брат, ты чего такой холодный?» — обижается её родной брат.'},
+     {l:'Обними его, как родного',bad:'Костя крепко обнимает её бывшего. Долго. Все молчат. Самокат тоже.'},
+     {l:'Позови его за стол',bad:'Костя зовёт за стол её бывшего. Теперь вас трое. И самокат.'}],
+  v:[{m:'БЫВШИЙ',ok:0,good:'Костя жмёт руку так невозмутимо, что Гоша сам уезжает в закат. Роксана впечатлена.'},
+     {m:'БРАТ',ok:1,good:'«Брат! Я столько о тебе слышал!» Брат в восторге. Одобрение семьи получено.'},
+     {m:'КОЛЛЕГА',ok:2,good:'Коллега садится, выпивает ваш морс и уходит. Роксане понравилось, что ты не ревнивый.'}]},
+ {n:'<b>20:05.</b> Сцена под балконом. Роксана: «Скажи что-нибудь красивое». Это твой звёздный час, Сирано. Костя передаёт, что она любит:',
+  o:[{l:'«Ты ярче всех звёзд, даже Сириуса»',bad:'Она завалила астрономию в универе. Костя продолжает про Сириус ещё пять минут.'},
+     {l:'«Я тону в твоих глазах и не зову на помощь»',bad:'Её укачивает даже в лифте. Метафора идёт ко дну.'},
+     {l:'«Ты как пицца: идеальна в любое время»',bad:'Она просила стихов. Костя сравнил её с пиццей. Молчание пахнет пепперони.'}],
+  v:[{m:'ЗВЕЗДЫ',ok:0,good:'Роксана смотрит в окно на звёзды, потом на Костю. Химия!'},
+     {m:'МОРЕ',ok:1,good:'«Ты тонешь?» — «Только в тебе». Соседний столик аплодирует стоя.'},
+     {m:'ПИЦЦА',ok:2,good:'Она хохочет до слёз: «Это лучший комплимент в моей жизни». Ромео нервно курит.'}]},
+ {n:'<b>20:40.</b> Приносят счёт. Роксана что-то говорит и тянется к сумочке. Сигнал:',
+  o:[{l:'Скажи: «Давай пополам»',bad:'«Давай пополам», — сказал Костя той, кто хотела угостить. Подарок отвергнут.'},
+     {l:'Скажи: «Спасибо! В следующий раз — я»',bad:'Она ждала, что заплатит Костя. «Следующий раз» звучит как угроза.'},
+     {l:'Молча и уверенно заплати',bad:'Костя решительно платит. Роксана: «Я что, сама не могу?» Феминизм негодует.'}],
+  v:[{m:'ПОПОЛАМ',ok:0,good:'Честно и по-взрослому. Роксана кивает: «Мне нравится».'},
+     {m:'Я УГОЩАЮ',ok:1,good:'«Значит, будет следующий раз?» — подмигивает она. ДА!'},
+     {m:'ТЫ ПЛАТИШЬ',ok:2,good:'Костя платит с видом миллионера. Карта проходит со второго раза, но проходит.'}]},
+ {n:'<b>21:00.</b> Роксана замечает, что Костя смотрит на часы после каждой фразы. Тревожный сигнал:',
+  o:[{l:'Признайся: «Мне подсказывает друг»',bad:'Костя зачем-то признался, хотя всё шло прекрасно. «Ты… советуешься с кем-то на свидании?!»'},
+     {l:'Импровизируй без меня!',bad:'Ты ушёл из эфира в самый важный момент. Костя смотрит на часы и шепчет: «Сирано?..»'},
+     {l:'Зови её гулять на набережную',bad:'«Пойдём гулять!» — «Ты уходишь от ответа?» Неловко.'}],
+  v:[{m:'ОНА ЗНАЕТ',ok:0,good:'Костя рассказал всё. Роксана: «Так это друг сочиняет комплименты? Мило. Но целоваться я буду с тобой».'},
+     {m:'ЧАСЫ САДЯТСЯ',ok:1,good:'Связь потеряна, но Костя выдаёт сам: «Ты красивая. Я очень волнуюсь». Иногда просто — лучше всего.'},
+     {m:'ЕЙ СКУЧНО',ok:2,good:'Свежий воздух, огни, набережная. Роксана берёт Костю под руку.'}]},
+ {n:'<b>22:15.</b> У подъезда. Последнее сообщение вечера. Всё решается сейчас:',
+  o:[{l:'Целуй! Медленно, как в кино',bad:'Костя тянется целоваться, а она протягивала руку. Он целует руку. Сейчас 1897 год?'},
+     {l:'Пожми руку, как джентльмен',bad:'Она ждала поцелуя. Костя жмёт руку и кланяется. Дверь закрывается.'},
+     {l:'Попроси номер телефона',bad:'«Можно твой номер?» — «Ты его записал два часа назад». Ой.'}],
+  v:[{m:'ОНА БЛИЗКО',ok:0,good:'Как в кино. Только музыку играет сосед на балалайке. Всё равно идеально.'},
+     {m:'ЖМЕТ РУКУ',ok:1,good:'Крепкое рукопожатие. Она смеётся: «Ты странный. Мне нравится».'},
+     {m:'НЕТ НОМЕРА',ok:2,good:'Она диктует номер… морзянкой. Это судьба.'}]},
+];
+const TIMEOUTS=['Связи нет — Костя импровизирует: «А ты знала, что у улитки 14 000 зубов?»',
+ 'Костя не дождался команды и начал рассказывать про свою бывшую. Подробно.',
+ 'Тишина в эфире. Костя неловко делает пальцами пистолетики.',
+ 'Костя: «А… э… ну… да». Шедевр ораторского искусства.',
+ 'Костя запаниковал и начал петь. Без музыки. Без слуха. Без причины.',
+ 'Костя молча показывает Роксане фото своего борща.'];
+const ENDINGS=[
+ {min:85,e:'💍',t:'Свадьба',x:'Через год ты — свидетель на свадьбе. Тост, разумеется, морзянкой. Роксана расшифровала его первой.'},
+ {min:65,e:'💘',t:'Второе свидание',x:'Через минуту приходит сообщение: «СПАСИБО БРАТ». Костя впервые отстучал его без ошибок.'},
+ {min:45,e:'🤝',t:'Френдзона',x:'«Ты классный, но давай дружить». А на прощание Роксана спрашивает: «А тот друг, который подсказывал… он свободен?» Сирано, твой выход.'},
+ {min:25,e:'🧑‍🍳',t:'Ушла с официантом',x:'Роксана уходит с официантом. Официант, кстати, всё это время читал вашу морзянку с часов Кости.'},
+ {min:0,e:'🚫',t:'Полный блок',x:'Роксана заблокировала Костю. Костя заблокировал тебя. «Голубая устрица» заблокировала обоих.'}];
+const DIFFS={easy:{name:'Лёгкий',src:'signs',trace:true,blind:false,time:2.2,mult:0.6,d:'знаки + звук + трасса'},
+ norm:{name:'Норм',src:'light',trace:false,blind:false,time:1.4,mult:1,d:'звук + свет, дерево'},
+ hard:{name:'Хардкор',src:'sound',trace:false,blind:true,time:1,mult:2,d:'только звук, без дерева'}};
+const OPTK=[['Е','.'],['Т','-'],['И','..']];
+P.story=P.story||{diff:'norm',endings:[],best:0};
+const ST={on:false,i:0,chem:50,v:null,t0:0,limit:0,raf:0,busy:true,log:[]};
+const dif=()=>DIFFS[P.story.diff];
+function stView(w){['stIntro','stGame','stEnd'].forEach(x=>$('#'+x).classList.toggle('hidden',x!==w));
+  $('#keypad').classList.toggle('hidden',!(mode==='story'&&w==='stGame'));
+  $('#treeCard').classList.toggle('covered',mode==='story'&&w==='stGame'&&dif().blind)}
+function stMenu(){ST.on=false;clearInterval(ST.raf);stopPlay();stView('stIntro');
+  const got=P.story.endings;$('#stEndings').innerHTML='Концовки: '+ENDINGS.map(e=>got.includes(e.t)?e.e+' '+e.t:'❔').join(' · ')+(P.story.best?` · рекорд химии: ${P.story.best}`:'')}
+function msgDur(m){const{u,cg,wg}=timing();let t=0;m.split(' ').forEach((w,wi)=>{if(wi)t+=wg;[...w].forEach((c,ci)=>{if(ci)t+=cg;[...ALL[c]].forEach((s,si)=>{t+=(s==='.'?u:3*u)+(si?u:0)})})});return t}
+function stStart(){unlockAudio();ST.on=true;ST.i=0;ST.chem=50;ST.log=[];stView('stGame');stScene()}
+function stChem(){$('#stChem').style.width=ST.chem+'%';$('#stChemN').textContent=ST.chem}
+async function stScene(){
+  const sc=SCENES[ST.i];ST.v=sc.v[Math.floor(Math.random()*sc.v.length)];ST.busy=false;
+  $('#stScene').textContent=`Сцена ${ST.i+1}/${SCENES.length} · ${dif().name}`;stChem();
+  $('#stNarr').innerHTML=sc.n;$('#stReact').classList.add('hidden');$('#stDec').value='';
+  $('#stOpts').innerHTML=sc.o.map((o,i)=>`<button class="opt" data-i="${i}"><span class="k">${OPTK[i][0]} ${pretty(OPTK[i][1])}</span><span>${o.l}</span></button>`).join('');
+  const m=ST.v.m;ST.limit=msgDur(m)+(5000+1100*m.replace(/ /g,'').length)*dif().time;ST.t0=performance.now();
+  clearInterval(ST.raf);ST.raf=setInterval(()=>{if(ST.busy||!ST.on)return clearInterval(ST.raf);const left=1-(performance.now()-ST.t0)/ST.limit;
+    $('#stTimer').style.width=Math.max(0,left*100)+'%';$('#stTimer').parentNode.classList.toggle('low',left<.25);
+    if(left<=0){clearInterval(ST.raf);stResolve(-1)}},80);
+  stPresent();
+}
+function stPresent(){
+  const d=dif(),m=ST.v.m;
+  $('#stSigns').textContent=d.src==='signs'?m.split(' ').map(w=>[...w].map(c=>pretty(ALL[c])).join(' ')).join('  /  '):'';
+  $('#stSigns').classList.toggle('hidden',d.src!=='signs');$('#stLed').classList.toggle('hidden',d.src!=='light');
+  play(m,{sound:true,light:d.src==='light',trace:d.trace});
+}
+function stResolve(i,keyed){
+  if(ST.busy||!ST.on)return;ST.busy=true;clearInterval(ST.raf);stopPlay();
+  const sc=SCENES[ST.i],v=ST.v,left=Math.max(0,1-(performance.now()-ST.t0)/ST.limit);
+  let dc,txt,pts=0;
+  const dec=norm($('#stDec').value).replace(/[^А-Я]/g,''),exact=dec&&dec===v.m.replace(/ /g,'');
+  if(i<0){dc=-15;txt='⏰ '+TIMEOUTS[Math.floor(Math.random()*TIMEOUTS.length)];P.combo=0}
+  else if(i===v.ok){dc=10+Math.round(8*left);txt=v.good;P.combo++;P.best=Math.max(P.best,P.combo);
+    pts=Math.round((30+40*left)*dif().mult*(keyed?1.5:1)*comboMult())}
+  else{dc=-12;txt=sc.o[i].bad;P.combo=0}
+  if(exact){pts+=20;dc+=3}
+  ST.chem=Math.max(0,Math.min(100,ST.chem+dc));stChem();
+  document.querySelectorAll('#stOpts .opt').forEach(b=>{b.disabled=true;const k=+b.dataset.i;if(k===v.ok)b.classList.add('right');else if(k===i)b.classList.add('wrong')});
+  if(pts)bonus(pts,$('#stReact'));else hud();
+  ST.log.push({m:v.m,ok:i===v.ok,dc});
+  const r=$('#stReact');r.classList.remove('hidden');
+  r.innerHTML=`${txt}<div class="d" style="color:${dc>=0?'var(--green)':'var(--red)'}">химия ${dc>=0?'+':''}${dc}${pts?` · +${pts} очков`:''}${keyed&&i===v.ok?' · отстучал ключом ×1.5':''}${exact?' · 📝 точная расшифровка':''}</div>
+   <div class="small" style="margin-top:6px">Костя передал: <b style="color:var(--text)">${v.m}</b> &nbsp;${v.m.split(' ').map(w=>[...w].map(c=>pretty(ALL[c])).join(' ')).join(' / ')}</div>
+   <div class="row" style="margin:10px 0 0"><button class="btn pri" id="stNext">${ST.i+1<SCENES.length?'Дальше →':'Чем всё закончилось? →'}</button><span class="small">Enter</span></div>`;
+  $('#stNext').onclick=stNext;
+}
+function stNext(){if(!ST.busy)return;ST.i++;if(ST.i<SCENES.length)stScene();else stEnd()}
+function stEnd(){
+  ST.on=false;const e=ENDINGS.find(x=>ST.chem>=x.min);
+  if(!P.story.endings.includes(e.t)){P.story.endings.push(e.t);toast('Новая концовка: '+e.e+' '+e.t)}
+  P.story.best=Math.max(P.story.best,ST.chem);const b=Math.round(ST.chem*dif().mult);bonus(b,$('#stEndE'));save();
+  $('#stEndE').textContent=e.e;$('#stEndT').textContent=e.t+` · химия ${ST.chem}`;$('#stEndX').textContent=e.x;
+  $('#stLog').innerHTML=ST.log.map((l,i)=>`<div>${l.ok?'✅':'❌'} ${i+1}. ${l.m} <span style="float:right">${l.dc>=0?'+':''}${l.dc}</span></div>`).join('')+`<div>Бонус за финал: +${b} очков</div>`;
+  stView('stEnd');
+}
+function stKey(c){if(!ST.on||ST.busy)return;const i=OPTK.findIndex(o=>o[1]===c);
+  if(i<0){$('#kpCode').textContent='нет такой команды';return}stResolve(i,true)}
+
 // ---------- events ----------
+$('#sndBtn').onclick=()=>{unlockAudio();ready().then(()=>{soundUI();play('E');if(S.vol===0)toast('Громкость на нуле — смотри «Прогресс → Настройки»')})};
+$('#stOpts').addEventListener('click',e=>{const b=e.target.closest('.opt');if(b&&!b.disabled)stResolve(+b.dataset.i,false)});
+$('#stStart').onclick=stStart;$('#stAgain').onclick=stStart;$('#stMenu').onclick=stMenu;
+$('#stReplay').onclick=()=>{if(ST.on&&!ST.busy)stPresent()};
+$('#stDec').addEventListener('input',e=>{const el=e.target,v=norm(el.value).replace(/[A-Z\[\];',.`]/g,c=>L2R[c]||c);if(v!==el.value)el.value=v});
+$('#stDecForm').addEventListener('submit',e=>{e.preventDefault();$('#stDec').blur()});
+seg($('#stDiff'),Object.fromEntries(Object.entries(DIFFS).map(([k,v])=>[k,[v.name+' <span class="small">'+v.d+'</span>',v.mult]])),P.story.diff,v=>{P.story.diff=v;save()});
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
 const kb=$('#keyBtn');
 kb.addEventListener('pointerdown',e=>{e.preventDefault();kb.setPointerCapture(e.pointerId);kDown()});
@@ -603,7 +835,7 @@ document.querySelectorAll('.kbtn[data-s]').forEach(b=>b.addEventListener('pointe
 $('#tapeSpace').onclick=()=>{tape+=' ';renderTape()};
 $('#tapeBack').onclick=()=>{tape=tape.slice(0,-1);renderTape()};
 $('#tapeClear').onclick=()=>{tape='';renderTape()};
-$('#playBtn').onclick=()=>{const t=norm($('#playTxt').value).replace(/[^A-ZА-Я0-9 ]/g,'');if(t.trim())play(t,{trace:true})};
+$('#playBtn').onclick=()=>{const el=$('#playTxt');if(!el.value.trim())el.value=el.placeholder;const t=norm(el.value).replace(/[^A-ZА-Я0-9 ]/g,'');if(t.trim())play(t,{trace:true})};
 $('#playTxt').addEventListener('keydown',e=>{if(e.key==='Enter')$('#playBtn').click()});
 $('#rxGrid').addEventListener('click',e=>{const b=e.target.closest('button');if(b)rxAnswer(b.dataset.l,b)});
 $('#rxWord').addEventListener('input',e=>{const el=e.target,v=fixLayout(el.value);if(v!==el.value)el.value=v});
@@ -617,7 +849,19 @@ $('#resetAll').onclick=()=>{if(confirm('Сбросить весь прогрес
 
 const typing=()=>document.activeElement&&document.activeElement.tagName==='INPUT'&&document.activeElement.type==='text';
 document.addEventListener('keydown',e=>{
+  if(mode==='story'&&e.key==='Enter'&&ST.on&&ST.busy){e.preventDefault();stNext();return}
   if(typing()||e.metaKey||e.ctrlKey||e.altKey)return;
+  if(mode==='story'){
+    if(!ST.on)return;
+    if(/^[123]$/.test(e.key)||/^Digit[123]$/.test(e.code)){e.preventDefault();if(!ST.busy)stResolve(+e.code.slice(-1)-1,false);return}
+    if(e.code==='Space'){e.preventDefault();if(!e.repeat)kDown()}
+    else if(e.key==='ArrowLeft'){e.preventDefault();kTap('-')}
+    else if(e.key==='ArrowRight'){e.preventDefault();kTap('.')}
+    else if(e.key==='Enter'){e.preventDefault();kCommit()}
+    else if(e.key==='Backspace'){e.preventDefault();kReset()}
+    else if(e.key==='r'||e.code==='KeyR'){$('#stReplay').click()}
+    return;
+  }
   if(mode==='free'||mode==='tx'){
     if(e.code==='Space'){e.preventDefault();if(!e.repeat)kDown()}
     else if(e.key==='ArrowLeft'||e.key==='-'){e.preventDefault();kTap('-')}
@@ -632,7 +876,7 @@ document.addEventListener('keydown',e=>{
     if(ch&&pool()[ch]!==undefined){e.preventDefault();rxAnswer(ch,$(`#rxGrid [data-l="${ch}"]`))}
   }
 });
-document.addEventListener('keyup',e=>{if(e.code==='Space'&&(mode==='free'||mode==='tx')){e.preventDefault();kUp()}});
+document.addEventListener('keyup',e=>{if(e.code==='Space'&&(mode==='free'||mode==='tx'||mode==='story')){e.preventDefault();kUp()}});
 window.addEventListener('blur',()=>{if(K.down)kUp()});
 
 // ---------- init ----------
