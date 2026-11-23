@@ -31,7 +31,55 @@ nav{display:flex;gap:4px;padding:10px 16px 0;max-width:1100px;margin:0 auto;over
 nav button{background:none;border:1px solid transparent;border-bottom:none;border-radius:10px 10px 0 0;padding:8px 14px;color:var(--muted);white-space:nowrap}
 nav button.on{background:var(--panel);border-color:var(--line);color:var(--gold)}
 .wrap{max-width:1200px;margin:0 auto;padding:0 16px 40px;display:grid;grid-template-columns:minmax(300px,540px) 1fr;gap:18px;align-items:start}
-@media (max-width:900px){.wrap{grid-template-columns:1fr;gap:10px}.treecol{margin:0 auto;width:100%}#tree{max-height:46vh}.treehint{display:none}header{padding:8px 12px;gap:8px}.hud{margin-left:0}}
+.mobrow{display:none}
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr;gap:8px;padding:0 10px 20px}
+  .treecol{margin:0 auto;width:100%}
+  #tree{max-height:30vh}
+  .card{padding:2px;border-radius:14px}
+  .treehint{display:none}
+  header{padding:6px 10px;gap:6px}
+  .logo{font-size:15px}
+  .hud{margin-left:0;gap:4px;width:100%}
+  .chip{padding:2px 7px;font-size:12px}
+  .chip span{font-size:10px}
+  nav{padding:6px 10px 0}
+  nav button{padding:6px 10px;font-size:13px}
+  .panel{padding:12px;border-radius:0 12px 12px 12px;min-height:0}
+  .panel h2{font-size:19px}
+  .panel p.sub{display:none}
+  .row{margin-bottom:6px;gap:6px}
+  .row label{min-width:0;width:100%;margin-bottom:-2px}
+  .seg button{padding:5px 8px;font-size:12px}
+  .stage{padding:10px;margin:8px 0;gap:6px}
+  .led{width:48px;height:48px}
+  .signs{font-size:32px;min-height:40px}
+  .big{font-size:64px;min-height:64px;margin:6px 0}
+  .stage .row:has(#rxReplay){display:none}
+  #p-rx:not(.hidden){display:flex;flex-direction:column}
+  #p-rx>h2{order:0} #p-rx>.stage{order:1;margin-top:0} #p-rx>.row{order:2} #p-rx>*{order:3}
+  #rxTip{display:none}
+  #stScene,#stReact,.sthud{scroll-margin-top:96px}
+  #stDec{font-size:16px}
+  #p-story .stage .led{width:40px;height:40px}
+  /* закреплённая снизу панель: ответы / ключ */
+  #rxAns,#keypad{position:fixed;left:0;right:0;bottom:0;z-index:30;margin:0;background:rgba(11,12,9,.97);
+    border-top:1px solid var(--gold-d);padding:8px 10px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(0,0,0,.6)}
+  #rxAns .fb{margin:0 0 4px;min-height:20px;font-size:13px}
+  #rxAns .answer{margin:0}
+  #rxAns .diff{font-size:20px}
+  .mobrow{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+  #rxGrid{grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:4px;max-height:34vh;overflow-y:auto}
+  #rxGrid button{padding:8px 0;font-size:16px}
+  .kp-code{font-size:22px;min-height:28px}
+  .kbtn{padding:14px 0;font-size:26px}
+  .kp-hint{display:none}
+  #toast{bottom:auto;top:12px;transform:translateX(-50%) translateY(-160px)}
+  #toast.show{transform:translateX(-50%) translateY(0)}
+  .opt{padding:10px 12px}
+  .opt .k{min-width:52px;font-size:16px}
+  .narr{font-size:14px}
+}
 .treecol{position:sticky;top:70px}
 @media (max-width:860px){.treecol{position:static}}
 .card{background:#0d0e0b;border:2px solid var(--gold-d);border-radius:18px;padding:6px;position:relative;box-shadow:0 10px 40px rgba(0,0,0,.6),inset 0 0 0 1px #000}
@@ -171,7 +219,7 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
   <button data-m="free">🌳 Дерево</button>
   <button data-m="rx">🎧 Расшифровка</button>
   <button data-m="tx">📡 Передача</button>
-  <button data-m="story">💘 Свидание</button>
+  <button data-m="story">🎬 Сюжетная кампания</button>
   <button data-m="stats">📊 Прогресс</button>
 </nav>
 <div class="wrap">
@@ -222,14 +270,17 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
         <div class="spd"><label>Скорость</label><input type="range" class="wpmR" min="5" max="35"><output class="wpmO"></output>
           <label>Паузы</label><input type="range" class="fwR" min="3" max="35"><output class="fwO"></output></div>
       </div>
-      <div class="answer" id="rxEcho"></div>
-      <div class="fb" id="rxFb"></div>
-      <div id="rxDiff" class="diff"></div>
-      <div class="grid" id="rxGrid"></div>
-      <form class="row hidden" id="rxWordForm" autocomplete="off">
-        <input type="text" id="rxWord" placeholder="введи слово" autocapitalize="characters" spellcheck="false">
-        <button class="btn pri">OK</button>
-      </form>
+      <div id="rxAns" class="dockable">
+        <div class="answer" id="rxEcho"></div>
+        <div class="fb" id="rxFb"></div>
+        <div id="rxDiff" class="diff"></div>
+        <div class="mobrow"><button class="btn sm" data-proxy="#rxReplay">↻ Повтор</button><button class="btn sm" data-proxy="#rxSkip">Дальше →</button></div>
+        <div class="grid" id="rxGrid"></div>
+        <form class="row hidden" id="rxWordForm" autocomplete="off">
+          <input type="text" id="rxWord" placeholder="введи слово" autocapitalize="characters" spellcheck="false">
+          <button class="btn pri">OK</button>
+        </form>
+      </div>
       <p class="small" id="rxTip"></p>
     </section>
 
@@ -246,6 +297,7 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
     <!-- STORY -->
     <section class="panel hidden" id="p-story">
       <div id="stIntro">
+        <div class="small" style="letter-spacing:.12em;color:var(--amber)">СЮЖЕТНАЯ КАМПАНИЯ · ГЛАВА 1</div>
         <h2>Сирано на связи</h2>
         <p class="narr"><b>1825 год.</b> Художник Сэмюэл Морзе пишет портрет в Вашингтоне. Письмо о том, что его жене плохо, идёт к нему несколько дней. Когда он добирается домой, её уже похоронили. Через несколько лет Морзе изобретёт телеграф, чтобы важное доходило мгновенно.</p>
         <p class="narr"><b>Сегодня.</b> Важное — это первое свидание твоего друга Кости. Костя красив, как Кристиан из «Сирано де Бержерака», и так же двух слов не может связать. Роксана ждёт его в кафе «Голубая устрица». Ты сидишь в машине напротив. Костя отстукивает тебе морзянкой на часы, что происходит, а ты отвечаешь командами. Как Сирано под балконом, только с вибрацией.</p>
@@ -253,7 +305,7 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
         <div class="spd"><label>Скорость</label><input type="range" class="wpmR" min="5" max="35"><output class="wpmO"></output>
           <label>Паузы</label><input type="range" class="fwR" min="3" max="35"><output class="fwO"></output></div>
         <p class="small">Сообщения — на русском. Команду выбираешь, отстучав её букву ключом: <b>Е</b> •, <b>Т</b> —, <b>И</b> •• (очки ×1.5). Можно и кнопкой или клавишами 1/2/3. Ответ зависит от того, что именно передал Костя, так что угадать не получится. Не успеешь — Костя начнёт импровизировать. Не допусти этого.</p>
-        <div class="row"><button class="btn pri" id="stStart">💘 Начать свидание</button></div>
+        <div class="row"><button class="btn pri" id="stStart">▶ Начать главу 1</button></div>
         <p class="small" id="stEndings"></p>
       </div>
       <div id="stGame" class="hidden">
@@ -266,7 +318,7 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
           <div class="timer"><i id="stTimer"></i></div>
           <button class="btn sm" id="stReplay">↻ Повтор</button>
         </div>
-        <form class="row" id="stDecForm" autocomplete="off"><input type="text" id="stDec" placeholder="расшифровка (бонус +20)" spellcheck="false"></form>
+        <form class="row" id="stDecForm" autocomplete="off"><input type="text" id="stDec" placeholder="расшифровка: +20" spellcheck="false"></form>
         <div class="opts" id="stOpts"></div>
         <div class="react hidden" id="stReact"></div>
       </div>
@@ -275,7 +327,7 @@ h3{font:500 16px Oswald;letter-spacing:.05em;color:var(--gold);margin:18px 0 8px
         <h2 id="stEndT"></h2>
         <p class="narr" id="stEndX"></p>
         <div id="stLog" class="small"></div>
-        <div class="row" style="margin-top:12px"><button class="btn pri" id="stAgain">↻ Ещё свидание</button><button class="btn" id="stMenu">Меню</button></div>
+        <div class="row" style="margin-top:12px"><button class="btn pri" id="stAgain">↻ Пройти главу заново</button><button class="btn" id="stMenu">Меню</button></div>
       </div>
     </section>
 
@@ -559,7 +611,7 @@ function setMode(m){
   const blind=(m==='rx'&&P.ui.rxHint==='blind')||(m==='tx'&&P.ui.txHint==='blind');
   $('#treeCard').classList.toggle('covered',blind);
   $('#setSeg').style.visibility=m==='story'?'hidden':'';
-  if(m==='rx')rxStart();if(m==='tx')txNext();if(m==='stats')renderStats();if(m==='story')stMenu();
+  if(m==='rx')rxStart();if(m==='tx')txNext();if(m==='stats')renderStats();if(m==='story')stMenu();dockPad();
 }
 function setSet(v){
   P.ui.set=v;if(v!=='num')P.ui.base=v;save();buildTree();
@@ -761,7 +813,7 @@ const OPTK=[['Е','.'],['Т','-'],['И','..']];
 P.story=P.story||{diff:'norm',endings:[],best:0};
 const ST={on:false,i:0,chem:50,v:null,t0:0,limit:0,raf:0,busy:true,log:[]};
 const dif=()=>DIFFS[P.story.diff];
-function stView(w){['stIntro','stGame','stEnd'].forEach(x=>$('#'+x).classList.toggle('hidden',x!==w));
+function stView(w){['stIntro','stGame','stEnd'].forEach(x=>$('#'+x).classList.toggle('hidden',x!==w));setTimeout(dockPad,0);
   $('#keypad').classList.toggle('hidden',!(mode==='story'&&w==='stGame'));
   $('#treeCard').classList.toggle('covered',mode==='story'&&w==='stGame'&&dif().blind)}
 function stMenu(){ST.on=false;clearInterval(ST.raf);stopPlay();stView('stIntro');
@@ -778,7 +830,7 @@ async function stScene(){
   clearInterval(ST.raf);ST.raf=setInterval(()=>{if(ST.busy||!ST.on)return clearInterval(ST.raf);const left=1-(performance.now()-ST.t0)/ST.limit;
     $('#stTimer').style.width=Math.max(0,left*100)+'%';$('#stTimer').parentNode.classList.toggle('low',left<.25);
     if(left<=0){clearInterval(ST.raf);stResolve(-1)}},80);
-  stPresent();
+  stPresent();mobScroll($('#stScene'));
 }
 function stPresent(){
   const d=dif(),m=ST.v.m;
@@ -804,7 +856,7 @@ function stResolve(i,keyed){
   r.innerHTML=`${txt}<div class="d" style="color:${dc>=0?'var(--green)':'var(--red)'}">химия ${dc>=0?'+':''}${dc}${pts?` · +${pts} очков`:''}${keyed&&i===v.ok?' · отстучал ключом ×1.5':''}${exact?' · 📝 точная расшифровка':''}</div>
    <div class="small" style="margin-top:6px">Костя передал: <b style="color:var(--text)">${v.m}</b> &nbsp;${v.m.split(' ').map(w=>[...w].map(c=>pretty(ALL[c])).join(' ')).join(' / ')}</div>
    <div class="row" style="margin:10px 0 0"><button class="btn pri" id="stNext">${ST.i+1<SCENES.length?'Дальше →':'Чем всё закончилось? →'}</button><span class="small">Enter</span></div>`;
-  $('#stNext').onclick=stNext;
+  $('#stNext').onclick=stNext;mobScroll(r,'center');
 }
 function stNext(){if(!ST.busy)return;ST.i++;if(ST.i<SCENES.length)stScene();else stEnd()}
 function stEnd(){
@@ -817,6 +869,17 @@ function stEnd(){
 }
 function stKey(c){if(!ST.on||ST.busy)return;const i=OPTK.findIndex(o=>o[1]===c);
   if(i<0){$('#kpCode').textContent='нет такой команды';return}stResolve(i,true)}
+
+// ---------- mobile dock ----------
+const isMob=()=>matchMedia('(max-width:900px)').matches;
+function dockPad(){
+  let h=0;if(isMob())['#rxAns','#keypad'].forEach(s=>{const el=$(s);if(el&&el.getClientRects().length)h=Math.max(h,el.offsetHeight)});
+  document.body.style.paddingBottom=h?(h+12)+'px':'';
+}
+if(window.ResizeObserver){const ro=new ResizeObserver(dockPad);ro.observe($('#rxAns'));ro.observe($('#keypad'))}
+window.addEventListener('resize',dockPad);
+document.addEventListener('click',e=>{const b=e.target.closest('[data-proxy]');if(b)$(b.dataset.proxy).click()});
+const mobScroll=(el,block='start')=>{if(isMob()&&el)setTimeout(()=>el.scrollIntoView({behavior:'smooth',block}),30)};
 
 // ---------- events ----------
 $('#sndBtn').onclick=()=>{unlockAudio();ready().then(()=>{soundUI();play('E');if(S.vol===0)toast('Громкость на нуле — смотри «Прогресс → Настройки»')})};
